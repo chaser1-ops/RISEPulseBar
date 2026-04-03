@@ -83,15 +83,25 @@ html, body {
 .about-author {
   font-size: 11px;
   color: var(--muted);
+  text-decoration: none;
   margin-bottom: 4px;
 }
+.about-author:hover { color: var(--accent); }
 .about-tag {
   font-size: 10px;
   color: var(--muted);
   opacity: 0.6;
-  margin-bottom: 20px;
+  margin-bottom: 6px;
   line-height: 1.5;
 }
+.about-link {
+  font-size: 10px;
+  color: var(--accent);
+  text-decoration: none;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+.about-link:hover { opacity: 1; text-decoration: underline; }
 .about-close {
   background: var(--accent);
   color: #fff;

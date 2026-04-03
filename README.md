@@ -69,4 +69,4 @@ MIT
 
 ---
 
-**RISE Studio Labs** — lightweight tools, zero noise.
+**[RISE Studio Labs](https://risestudiolabs.com)** — lightweight tools, zero noise.
