@@ -31,7 +31,7 @@ Four sequential build directives were executed to take RISE PulseBar from scratc
 | 4 | Verification Script + Ops Docs | COMPLETE | `VERIFY_RELEASE.sh` (10 checks), `INSTALL.md` rewritten as ops guide |
 | 5 | Brand Alignment | COMPLETE | `README.md` updated with approved RISE Studio Labs copy |
 | 6 | GitHub Release | DRAFT | Tag v1.0.2, release notes, DMG attached. Awaiting operator test + publish. |
-| 7 | Gumroad Listing | DRAFT | Product created: name, description, $0 price, slug `rise-pulsebar`. Awaiting DMG upload + publish. |
+| 7 | Gumroad Listing | PUBLISHED | Live at gotsentinel.gumroad.com/l/rise-pulsebar. Free ($0+, pay-what-you-want with $5 suggested tip). DMG uploaded (8.92 MB). |
 | 8 | Screenshots | COMPLETE | 7 screenshots captured in /screenshots/. 4 referenced in README. |
 | 9 | Final Validation | COMPLETE | Version 1.0.2 consistent across 9 locations. Zero stale TODOs, debug prints, or placeholder text. |
 | 10 | Stale Reference Cleanup | COMPLETE | No stale references found in codebase. |
@@ -75,8 +75,8 @@ Four sequential build directives were executed to take RISE PulseBar from scratc
 
 | Channel | URL | Status |
 |---------|-----|--------|
-| GitHub Releases | github.com/chaser1-ops/RISEPulseBar/releases | Draft or Published — needs operator verification (gh CLI unavailable) |
-| Gumroad | gotsentinel.gumroad.com/l/rise-pulsebar | Needs operator verification — DMG upload + publish status unknown |
+| GitHub Releases | github.com/chaser1-ops/RISEPulseBar/releases | DRAFT (verified via browser). DMG attached. Intentionally not published yet. |
+| Gumroad | gotsentinel.gumroad.com/l/rise-pulsebar | PUBLISHED — free ($0+, $5 suggested tip). DMG uploaded (8.92 MB). No cover images yet. |
 
 ---
 
