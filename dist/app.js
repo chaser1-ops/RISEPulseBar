@@ -254,6 +254,15 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') hideAbout();
 // Rust fires this via win.eval() from the "about" menu item and show_about command
 window.addEventListener('show-about', showAbout);
 
+// ─── Drag header to reposition panel ──────────────────────────────────────
+// Uses Tauri 2 startDragging() API. Requires core:window:allow-start-dragging
+// capability. Only the header acts as drag surface; close button is excluded.
+document.querySelector('.header').addEventListener('mousedown', e => {
+  if (e.button !== 0) return;            // primary button only
+  if (e.target.closest('.close-btn')) return;  // keep close button clickable
+  window.__TAURI__.window.getCurrentWindow().startDragging();
+});
+
 // ─── Close button ─────────────────────────────────────────────────────────────
 closeBtn.addEventListener('click', () =>
   invoke('hide_panel').catch(() =>

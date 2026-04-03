@@ -684,9 +684,9 @@ pub fn run() {
                 app, "panel", WebviewUrl::App("index.html".into()),
             )
             .title("Rise PulseBar")
-            .inner_size(340.0, 560.0)
-            .min_inner_size(340.0, 560.0)
-            .max_inner_size(340.0, 560.0)
+            .inner_size(340.0, 640.0)
+            .min_inner_size(340.0, 400.0)
+            .max_inner_size(340.0, 640.0)
             .decorations(false)
             .always_on_top(true)
             .visible(false)
@@ -695,10 +695,7 @@ pub fn run() {
             .shadow(true)
             .build()?;
 
-            let ph = panel.clone();
-            panel.on_window_event(move |event| {
-                if let tauri::WindowEvent::Focused(false) = event { let _ = ph.hide(); }
-            });
+            // Panel closes via X button or hide_panel command — no auto-hide on blur
 
             start_gpu_thread(Arc::clone(&gpu_shared));
             start_metrics_thread(

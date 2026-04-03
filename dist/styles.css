@@ -23,9 +23,9 @@
 
 html, body {
   width: var(--w);
-  height: 560px;
+  height: 100%;
   overflow: hidden;
-  background: transparent;
+  background: var(--bg);
   font-family: -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
   font-size: 12px;
   -webkit-font-smoothing: antialiased;
@@ -115,7 +115,7 @@ html, body {
 /* ─── Panel Shell ────────────────────────────────────────────────────────────── */
 .panel {
   width: var(--w);
-  height: 560px;
+  height: 100%;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -123,7 +123,7 @@ html, body {
   flex-direction: column;
   gap: 5px;
   padding: 11px;
-  overflow: hidden;
+  overflow-y: auto;
   animation: panelIn 0.12s cubic-bezier(0.2, 0, 0, 1) both;
 }
 
@@ -135,6 +135,7 @@ html, body {
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   gap: 6px;
+  cursor: grab;
 }
 .app-name {
   font-size: 11px;

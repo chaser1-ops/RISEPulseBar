@@ -1,17 +1,26 @@
 # RISE PulseBar
 
-RISE PulseBar is a real-time system monitor for macOS with a clean, minimal interface. Track CPU, memory, network, and performance stats directly from your menu bar — fast, private, and distraction-free. No tracking. No noise. Brought to you by **RISE Studio Labs**.
+RISE PulseBar is a real-time system monitor for macOS with a clean, minimal interface. Track CPU, memory, disk, GPU, and network stats directly from your menu bar — fast, private, and distraction-free. No tracking. No noise. Brought to you by **RISE Studio Labs**.
+
+![Menu Bar — Full Mode](screenshots/screenshot-menubar-full.jpg)
 
 ## Features
 
-- **Live menu bar** — CPU, memory, and GPU usage update every second with fixed-width text (no jitter)
-- **GPU monitoring** — Apple Silicon GPU utilization; hides gracefully if unavailable
+- **Native colored metrics** — CPU (blue), RAM (green), DSK (orange), GPU (purple) displayed as individual colored text items in the menu bar
+- **Live animated icon** — hot pink 4-bar chart animates in real-time with CPU/RAM/DSK/GPU values
+- **GPU monitoring** — Apple Silicon GPU utilization via IOKit; hides gracefully on unsupported hardware
+- **Disk monitoring** — boot volume usage (ignores external drives)
 - **Top process** — shows the most CPU-hungry process and its usage
 - **Sparklines** — 60-second rolling history graphs for CPU and GPU
 - **Network** — real-time download / upload speeds
-- **Settings** — mode, refresh rate, and launch-at-login from right-click tray menu or in-panel controls; all changes persist instantly
-- **About** — version and credits accessible from tray menu
+- **Draggable dashboard** — click the tray icon to open, drag the header to reposition
+- **3 display modes** — Minimal (CPU only), Standard (CPU + RAM), Full (all metrics)
+- **Settings** — mode, refresh rate, and launch-at-login from right-click menu or in-panel controls
 - **Fully local** — no cloud, no analytics, no telemetry, no accounts
+
+![Dashboard Panel](screenshots/screenshot-panel.jpg)
+![Right-Click Menu](screenshots/screenshot-rightclick.jpg)
+![About](screenshots/screenshot-about.jpg)
 
 ## Performance
 
@@ -37,8 +46,8 @@ See [INSTALL.md](INSTALL.md) for build-from-source, signing, and notarization in
 | Left-click menu bar | Open / close dashboard |
 | Right-click menu bar | Mode, refresh rate, launch at login, about, quit |
 | Mode: MIN | CPU only in menu bar |
-| Mode: STD | CPU + MEM in menu bar, all cards in panel |
-| Mode: FULL | CPU + MEM + GPU in menu bar |
+| Mode: STD | CPU + RAM in menu bar |
+| Mode: FULL | CPU + RAM + DSK + GPU in menu bar |
 
 ## Build from Source
 
