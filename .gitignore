@@ -1,3 +1,17 @@
+# Build output
 src-tauri/target/
+src-tauri/gen/schemas/
+
+# macOS
 .DS_Store
+
+# Temp files
 *.tmp
+
+# Local secrets — NEVER commit these
+RELEASE_ENV_LOCAL.sh
+.env
+.env.*
+.env.local
+.env.release
+*.local.sh

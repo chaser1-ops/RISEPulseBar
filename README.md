@@ -1,17 +1,17 @@
-# Rise PulseBar
+# RISE PulseBar
 
-A lightweight macOS menu bar system monitor. CPU, GPU, memory, network — always visible, never in the way.
+RISE PulseBar is a real-time system monitor for macOS with a clean, minimal interface. Track CPU, memory, network, and performance stats directly from your menu bar — fast, private, and distraction-free. No tracking. No noise. Brought to you by **RISE Studio Labs**.
 
 ## Features
 
-- **Live menu bar** — CPU and memory usage updates every second with fixed-width formatting (no jitter)
-- **GPU monitoring** — Apple Silicon GPU utilization via ioreg (hides gracefully if unavailable)
-- **Top process** — shows the most CPU-hungry process name and its usage
-- **Sparklines** — 60-second CPU and GPU history graphs in the dropdown
-- **Network** — real-time download/upload speeds
-- **Settings** — mode/rate from right-click tray menu or in-panel controls; all changes persist and sync instantly
-- **About** — version info accessible from tray menu or panel
-- **Zero bloat** — no cloud, no analytics, no accounts
+- **Live menu bar** — CPU, memory, and GPU usage update every second with fixed-width text (no jitter)
+- **GPU monitoring** — Apple Silicon GPU utilization; hides gracefully if unavailable
+- **Top process** — shows the most CPU-hungry process and its usage
+- **Sparklines** — 60-second rolling history graphs for CPU and GPU
+- **Network** — real-time download / upload speeds
+- **Settings** — mode, refresh rate, and launch-at-login from right-click tray menu or in-panel controls; all changes persist instantly
+- **About** — version and credits accessible from tray menu
+- **Fully local** — no cloud, no analytics, no telemetry, no accounts
 
 ## Performance
 
@@ -23,12 +23,12 @@ A lightweight macOS menu bar system monitor. CPU, GPU, memory, network — alway
 
 ## Install
 
-1. Open `Rise PulseBar_1.0.2_aarch64.dmg`
-2. Drag **Rise PulseBar** to **Applications**
+1. Download `Rise PulseBar_1.0.2_aarch64.dmg` from [Releases](https://github.com/chaser1-ops/RISEPulseBar/releases)
+2. Open the DMG, drag **Rise PulseBar** to **Applications**
 3. Launch from Applications
 4. Click the menu bar item to open the dashboard
 
-> On first launch macOS may show a security prompt — see [INSTALL.md](INSTALL.md).
+See [INSTALL.md](INSTALL.md) for build-from-source, signing, and notarization instructions.
 
 ## Usage
 
@@ -36,14 +36,14 @@ A lightweight macOS menu bar system monitor. CPU, GPU, memory, network — alway
 |---|---|
 | Left-click menu bar | Open / close dashboard |
 | Right-click menu bar | Mode, refresh rate, launch at login, about, quit |
-| Mode: MIN | CPU + memory only |
-| Mode: STD | All stats |
-| Mode: FULL | All stats + GPU in menu bar |
+| Mode: MIN | CPU only in menu bar |
+| Mode: STD | CPU + MEM in menu bar, all cards in panel |
+| Mode: FULL | CPU + MEM + GPU in menu bar |
 
-## Build from source
+## Build from Source
 
 ```bash
-# Prerequisites: Rust 1.77+, Tauri CLI 2.x, Node 18+
+# Prerequisites: Rust 1.77+, Tauri CLI 2.x, Xcode Command Line Tools
 git clone https://github.com/chaser1-ops/RISEPulseBar
 cd RISEPulseBar
 cargo tauri build
@@ -53,3 +53,11 @@ cargo tauri build
 
 - macOS 12.0 (Monterey) or later
 - Apple Silicon or Intel Mac
+
+## License
+
+MIT
+
+---
+
+**RISE Studio Labs** — lightweight tools, zero noise.

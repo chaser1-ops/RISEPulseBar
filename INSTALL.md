@@ -1,87 +1,91 @@
-# Installation Guide
+# RISE PulseBar — Install & Release Operations Guide
 
-## Standard Install (unsigned build)
+## Quick Install (end users)
 
-1. Open `Rise PulseBar_1.0.1_aarch64.dmg`
-2. Drag **Rise PulseBar.app** into the **Applications** folder
-3. Open **Applications** and right-click **Rise PulseBar → Open**
-4. Click **Open** on the Gatekeeper dialog
-5. The app appears in your menu bar — no dock icon
+1. Download `Rise PulseBar_1.0.2_aarch64.dmg`
+2. Open the DMG and drag **Rise PulseBar** to **Applications**
+3. Launch from **Applications** (first time: right-click > Open to bypass Gatekeeper if unsigned)
+4. The app appears in your menu bar — no dock icon
 
-## Signed + Notarized Build (distribution)
-
-### Prerequisites
-
-- Active **Apple Developer Program** membership ($99/year)
-- Xcode Command Line Tools: `xcode-select --install`
-- Your **Developer ID Application** certificate installed in Keychain
-
-### Step 1 — Configure signing identity
-
-Edit `src-tauri/tauri.conf.json`:
-
-```json
-"macOS": {
-  "signingIdentity": "Developer ID Application: Your Name (TEAMID)",
-  "entitlements": "entitlements.plist"
-}
-```
-
-Find your identity:
-```bash
-security find-identity -v -p codesigning | grep "Developer ID Application"
-```
-
-### Step 2 — Build signed app
+## Build from Source
 
 ```bash
+# Prerequisites: Rust 1.77+, Tauri CLI 2.x, Xcode Command Line Tools
+cd "/Volumes/AI_SSD/Rise PulseBar"
 cargo tauri build
 ```
 
-Tauri automatically signs the `.app` and `.dmg` using the identity above.
+Artifacts appear at:
+- `src-tauri/target/release/bundle/macos/Rise PulseBar.app`
+- `src-tauri/target/release/bundle/dmg/Rise PulseBar_<version>_aarch64.dmg`
 
-### Step 3 — Notarize
+---
 
-```bash
-# Store credentials once
-xcrun notarytool store-credentials "rise-pulsebar-profile" \
-  --apple-id "your@email.com" \
-  --team-id "YOUR_TEAM_ID" \
-  --password "app-specific-password"
+## Signed + Notarized Release (for distribution)
 
-# Submit for notarization
-xcrun notarytool submit \
-  "src-tauri/target/release/bundle/dmg/Rise PulseBar_1.0.1_aarch64.dmg" \
-  --keychain-profile "rise-pulsebar-profile" \
-  --wait
-```
+### Prerequisites
 
-### Step 4 — Staple
+- Active [Apple Developer Program](https://developer.apple.com/programs/) membership
+- Xcode Command Line Tools: `xcode-select --install`
+- **Developer ID Application** certificate installed in Keychain
+- An [app-specific password](https://appleid.apple.com) for notarization
+
+### Step-by-step
 
 ```bash
-xcrun stapler staple \
-  "src-tauri/target/release/bundle/macos/Rise PulseBar.app"
+# 1. Prepare credentials (one time)
+cp RELEASE_ENV_TEMPLATE.sh RELEASE_ENV_LOCAL.sh
+# Edit RELEASE_ENV_LOCAL.sh with your real Apple ID, Team ID, and app-specific password
 
-xcrun stapler staple \
-  "src-tauri/target/release/bundle/dmg/Rise PulseBar_1.0.1_aarch64.dmg"
+# 2. Source credentials
+source ./RELEASE_ENV_LOCAL.sh
+
+# 3. Run the release script
+./RELEASE_PULSEBAR.sh
 ```
 
-### Step 5 — Verify
+The script will:
+- Verify project context and required tools
+- Detect your signing identity from Keychain
+- Update `tauri.conf.json` if `signingIdentity` is null
+- Build in release mode
+- Submit DMG to Apple notarization
+- Staple the notarization ticket to both `.app` and `.dmg`
+- Run `spctl` verification and print results
+
+### Post-release verification
 
 ```bash
-spctl --assess --verbose \
-  "src-tauri/target/release/bundle/macos/Rise PulseBar.app"
-# Expected: "accepted" source=Notarized Developer ID
+./VERIFY_RELEASE.sh
 ```
 
-## App-Specific Password
+Checks code signature, Gatekeeper acceptance, staple validity, version consistency, and git tag.
 
-Generate at [appleid.apple.com](https://appleid.apple.com) → Sign-In and Security → App-Specific Passwords.
+---
+
+## Release Checklist
+
+- [ ] Version numbers match in: `Cargo.toml`, `tauri.conf.json`, Rust `APP_VERSION`, HTML About, `RELEASE_NOTES.md`
+- [ ] `RELEASE_ENV_LOCAL.sh` sourced with valid credentials
+- [ ] `./RELEASE_PULSEBAR.sh` completes without errors
+- [ ] `./VERIFY_RELEASE.sh` shows all checks passing
+- [ ] DMG uploaded to GitHub release
+- [ ] DMG uploaded to Gumroad (if applicable)
+- [ ] Test install on clean user account: drag to Applications, launch, verify menu bar appears
+
+---
 
 ## Troubleshooting
 
-| Error | Fix |
+| Issue | Fix |
 |---|---|
-| "Rise PulseBar can't be opened" | Right-click → Open, or `xattr -cr /Applications/Rise\ PulseBar.app` |
-| Gatekeeper blocks | Ensure signing identity is Developer ID (not Mac App Store) |
-| Notarization fails | Check entitlements.plist — `com.apple.security.app-sandbox` must be `false` |
+| "can't be opened because Apple cannot check it" | Right-click > Open, or run `xattr -cr /Applications/Rise\ PulseBar.app` |
+| `spctl` shows "rejected" | Signing identity may be wrong, or notarization not stapled — re-run release script |
+| Notarization fails | Verify `entitlements.plist` has `app-sandbox = false`; check Apple Developer portal for issues |
+| No signing identity found | Install your Developer ID certificate from Apple Developer portal into Keychain Access |
+| `APPLE_ID` / `TEAM_ID` / `APP_PASSWORD` not set | `source ./RELEASE_ENV_LOCAL.sh` before running the release script |
+
+## Requirements
+
+- macOS 12.0 (Monterey) or later
+- Apple Silicon or Intel Mac
