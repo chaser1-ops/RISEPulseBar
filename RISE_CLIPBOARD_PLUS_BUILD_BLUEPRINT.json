@@ -1,0 +1,132 @@
+{
+  "product_name": "RISE Clipboard+",
+  "version": "0.1.0",
+  "brand": "RISE Studio Labs",
+  "created": "2026-04-02",
+  "status": "planning",
+  "phases": [
+    {
+      "id": "core-engine",
+      "name": "Core Engine",
+      "description": "Build the foundational clipboard monitoring service, local storage layer, and deduplication logic. This phase produces a headless daemon that captures clipboard events and persists them to SQLite.",
+      "tasks": [
+        "Initialize Tauri 2 project with Rust backend and WebView frontend scaffolding",
+        "Implement macOS clipboard polling via NSPasteboard API in Rust",
+        "Define SQLite schema for clipboard entries (id, content_type, payload, source_app, timestamp, hash, pinned, tags)",
+        "Build clipboard entry storage and retrieval layer with SQLite",
+        "Implement content hashing for deduplication of consecutive identical copies",
+        "Support text, image (PNG/TIFF), and file reference content types",
+        "Add configurable history size limit with automatic pruning of oldest unpinned entries",
+        "Store source application metadata (bundle ID, app name) for each clipboard event",
+        "Write unit tests for storage, deduplication, and pruning logic",
+        "Benchmark clipboard capture latency target: under 50ms"
+      ],
+      "estimated_complexity": "high"
+    },
+    {
+      "id": "ui",
+      "name": "User Interface",
+      "description": "Build the clipboard history panel, search interface, item preview, and pin/favorites management. The panel appears as a floating window triggered by global hotkey.",
+      "tasks": [
+        "Design panel layout: history list, search bar, preview pane, pinned section",
+        "Implement scrollable clipboard history list with item type indicators",
+        "Build full-text search with real-time filtering as the user types",
+        "Add content type filter controls (text, image, file)",
+        "Add source application filter",
+        "Implement item preview for text (with syntax highlighting for code), images (thumbnail), and files (icon and path)",
+        "Build pin/unpin toggle on each clipboard entry",
+        "Create pinned favorites section at top of panel with drag-to-reorder",
+        "Display timestamp and source app metadata per entry",
+        "Implement paste action: selecting an item writes it to clipboard and closes panel",
+        "Style the panel to match macOS system appearance (light and dark mode)"
+      ],
+      "estimated_complexity": "high"
+    },
+    {
+      "id": "system-integration",
+      "name": "System Integration",
+      "description": "Wire up macOS system-level features: global hotkey registration, accessibility permission requests, login item registration, and menu bar presence.",
+      "tasks": [
+        "Register global keyboard shortcut for panel activation (default: Cmd+Shift+V)",
+        "Implement accessibility permission check and prompt on first launch",
+        "Add launch-at-login toggle using SMAppService or LaunchAgents",
+        "Create menu bar icon with dropdown for quick access, preferences, and quit",
+        "Handle permission denial gracefully with user-facing guidance",
+        "Ensure clipboard monitoring resumes correctly after sleep/wake cycles",
+        "Handle multiple displays and position panel on the active screen",
+        "Test compatibility with macOS 12 through macOS 15"
+      ],
+      "estimated_complexity": "medium"
+    },
+    {
+      "id": "polish",
+      "name": "Polish and Advanced Features",
+      "description": "Add categories, tags, keyboard navigation refinements, animations, and the optional iCloud sync feature. Harden edge cases and improve perceived performance.",
+      "tasks": [
+        "Implement color-coded tags with create, assign, and remove operations",
+        "Build custom categories for organizing clipboard entries",
+        "Add tag and category filter to the search panel",
+        "Refine keyboard navigation: arrow keys to browse, Return to paste, Escape to close, number keys 1-9 for quick select",
+        "Add subtle open/close animations for the panel (configurable, can be disabled)",
+        "Implement sensitive content detection to auto-exclude password manager entries",
+        "Build clear-all-history action with confirmation",
+        "Add preferences window: hotkey customization, history size, launch at login, sync toggle",
+        "Implement optional iCloud sync via NSUbiquitousKeyValueStore or CloudKit",
+        "Make sync scope configurable: all items, pinned only, or tagged only",
+        "Add free tier enforcement: 50-item cap with upgrade prompt",
+        "Implement Pro license validation via Gumroad license key"
+      ],
+      "estimated_complexity": "medium"
+    },
+    {
+      "id": "packaging",
+      "name": "Packaging and Signing",
+      "description": "Produce a distributable universal binary DMG, signed and notarized for macOS Gatekeeper compliance.",
+      "tasks": [
+        "Configure Tauri build for universal binary (aarch64 + x86_64)",
+        "Set up Apple Developer signing with Developer ID certificate",
+        "Configure entitlements for clipboard access and accessibility",
+        "Build DMG installer with application icon, background image, and Applications symlink",
+        "Submit build to Apple notarization service and staple the ticket",
+        "Verify Gatekeeper acceptance on a clean macOS install",
+        "Generate SHA-256 checksums for all distributed binaries",
+        "Automate the build and signing pipeline via shell script or CI",
+        "Validate binary size target: under 15 MB"
+      ],
+      "estimated_complexity": "medium"
+    },
+    {
+      "id": "release",
+      "name": "Release and Distribution",
+      "description": "Publish the initial release on GitHub and Gumroad. Prepare documentation, screenshots, and promotional materials.",
+      "tasks": [
+        "Create GitHub repository under RISE Studio Labs organization",
+        "Write README with product description, installation instructions, and feature overview",
+        "Capture application screenshots for documentation and storefront",
+        "Record a short demo GIF showing clipboard capture, search, and paste workflow",
+        "Draft release notes for v0.1.0",
+        "Publish GitHub Release with DMG, checksums, and release notes",
+        "Set up Gumroad product page with description, screenshots, and pricing tiers",
+        "Configure Gumroad license key generation for Pro tier",
+        "Create a minimal landing page or link from existing RISE Studio Labs site",
+        "Announce release in relevant developer and macOS communities"
+      ],
+      "estimated_complexity": "low"
+    }
+  ],
+  "metadata": {
+    "total_phases": 6,
+    "complexity_summary": {
+      "high": 2,
+      "medium": 3,
+      "low": 1
+    },
+    "notes": [
+      "Phase order is sequential but some tasks across phases can overlap.",
+      "Core Engine and UI phases carry the highest risk and should be prioritized.",
+      "System Integration depends on Core Engine completion.",
+      "Polish phase items are individually deferrable if timeline requires it.",
+      "iCloud sync is the most complex single feature and can ship in a point release if needed."
+    ]
+  }
+}
