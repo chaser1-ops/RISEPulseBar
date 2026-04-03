@@ -25,6 +25,10 @@ const gpuSpark     = $('gpuSpark');
 const memValue     = $('memValue');
 const memBar       = $('memBar');
 const memSub       = $('memSub');
+const dskCard      = $('dskCard');
+const dskValue     = $('dskValue');
+const dskBar       = $('dskBar');
+const dskSub       = $('dskSub');
 const swapCard     = $('swapCard');
 const swapValue    = $('swapValue');
 const swapBar      = $('swapBar');
@@ -57,8 +61,9 @@ function setBar(el, pct) {
   el.style.width = Math.min(100, Math.max(0, pct)).toFixed(1) + '%';
 }
 function colorBar(el, pct) {
-  el.classList.toggle('warn', pct >= 70 && pct < 90);
-  el.classList.toggle('crit', pct >= 90);
+  el.classList.toggle('ok',   pct < 50);
+  el.classList.toggle('warn', pct >= 50 && pct < 80);
+  el.classList.toggle('crit', pct >= 80);
 }
 
 // ─── Sparkline renderer (DPR-aware, no external libs) ────────────────────────
@@ -151,6 +156,14 @@ function render(m) {
   colorBar(memBar, m.mem_percent);
   memSub.textContent = fmtMB(m.mem_used_mb) + ' / ' + fmtMB(m.mem_total_mb);
 
+  // Disk
+  if (m.disk_total_gb > 0) {
+    dskValue.textContent = m.disk_percent.toFixed(0) + '%';
+    setBar(dskBar, m.disk_percent);
+    colorBar(dskBar, m.disk_percent);
+    dskSub.textContent = m.disk_used_gb.toFixed(1) + ' GB / ' + m.disk_total_gb.toFixed(0) + ' GB';
+  }
+
   // Swap
   if (cfg?.show_swap !== false) {
     const sp = m.swap_total_mb > 0 ? (m.swap_used_mb / m.swap_total_mb) * 100 : 0;
@@ -196,7 +209,7 @@ async function loadSettings() {
   try {
     applySettings(await invoke('get_settings'));
   } catch {
-    applySettings({ mode: 'standard', refresh_rate_ms: 1000,
+    applySettings({ mode: 'full', refresh_rate_ms: 1000,
                     show_gpu: true, show_network: true, show_swap: true });
   }
 }

@@ -200,6 +200,7 @@ html, body {
 .dot-gpu  { background: var(--gpu-color);  box-shadow: 0 0 5px var(--gpu-color); }
 .dot-mem  { background: var(--mem-color);  box-shadow: 0 0 5px var(--mem-color); }
 .dot-swap { background: var(--swap-color); box-shadow: 0 0 5px var(--swap-color); }
+.dot-dsk  { background: #e8784a;           box-shadow: 0 0 5px #e8784a; }
 .dot-net  { background: var(--net-color);  box-shadow: 0 0 5px var(--net-color); }
 
 /* Fixed-width value column — tabular nums prevent layout shifts */
@@ -240,11 +241,17 @@ html, body {
 .bar-cpu  { background: var(--cpu-color); }
 .bar-gpu  { background: var(--gpu-color); }
 .bar-mem  { background: var(--mem-color); }
+.bar-dsk  { background: #e8784a; }
 .bar-swap { background: var(--swap-color); }
 
-.bar-cpu.warn, .bar-gpu.warn              { background: #e07a30; }
-.bar-mem.warn                             { background: #d9952a; }
-.bar-cpu.crit, .bar-gpu.crit, .bar-mem.crit { background: #d94040; }
+.bar-fill {
+  transition: width 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.4s ease;
+}
+
+.bar-fill.ok   { background: #2ec97a; }
+.bar-fill.warn { background: #e8a630; }
+.bar-fill.crit { background: #e04050; }
 
 /* ─── Sparklines ─────────────────────────────────────────────────────────────── */
 .sparkline {

@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use sysinfo::{Networks, ProcessRefreshKind, ProcessesToUpdate, System};
+use sysinfo::{Disks, Networks, ProcessRefreshKind, ProcessesToUpdate, System};
 use tauri::menu::{MenuBuilder, MenuItem, Submenu, SubmenuBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, LogicalPosition, Manager, State, WebviewUrl, WebviewWindowBuilder};
@@ -21,7 +21,7 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            mode: "standard".into(),
+            mode: "full".into(),
             refresh_rate_ms: 1000,
             show_gpu: true,
             show_network: true,
@@ -72,6 +72,9 @@ pub struct Metrics {
     pub net_rx_kbps: f64,
     pub net_tx_kbps: f64,
     pub gpu_usage: Option<f32>,
+    pub disk_used_gb: f64,
+    pub disk_total_gb: f64,
+    pub disk_percent: f32,
     pub top_process_name: String,
     pub top_process_cpu: f32,
 }
@@ -138,17 +141,32 @@ fn quit_app(app: AppHandle) {
 
 // ─── GPU Thread ───────────────────────────────────────────────────────────────
 
-fn parse_gpu_pct(output: &str) -> Option<f32> {
-    for line in output.lines() {
-        if let Some(pos) = line.find("\"Device Utilization %\"=") {
-            let rest = &line[pos + "\"Device Utilization %\"=".len()..];
-            let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
-            if let Ok(v) = digits.parse::<f32>() {
-                return Some(v.clamp(0.0, 100.0));
-            }
+fn parse_ioreg_value(line: &str, key: &str) -> Option<f32> {
+    if let Some(pos) = line.find(key) {
+        let rest = &line[pos + key.len()..];
+        let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+        if let Ok(v) = digits.parse::<f32>() {
+            return Some(v.clamp(0.0, 100.0));
         }
     }
     None
+}
+
+fn parse_gpu_pct(output: &str) -> Option<f32> {
+    let mut best: Option<f32> = None;
+    for line in output.lines() {
+        // Take the max of Device, Renderer, and Tiler utilization
+        for key in [
+            "\"Device Utilization %\"=",
+            "\"Renderer Utilization %\"=",
+            "\"Tiler Utilization %\"=",
+        ] {
+            if let Some(v) = parse_ioreg_value(line, key) {
+                best = Some(best.map_or(v, |b: f32| b.max(v)));
+            }
+        }
+    }
+    best
 }
 
 fn start_gpu_thread(shared: Arc<Mutex<Option<f32>>>) {
@@ -159,30 +177,135 @@ fn start_gpu_thread(shared: Arc<Mutex<Option<f32>>>) {
             .ok()
             .and_then(|o| parse_gpu_pct(&String::from_utf8_lossy(&o.stdout)));
         *shared.lock().unwrap() = gpu;
-        std::thread::sleep(Duration::from_millis(2000));
+        std::thread::sleep(Duration::from_millis(1000));
     });
 }
 
-// ─── P1 — Fixed-width tray title (no jitter) ─────────────────────────────────
+// ─── Live animated bar chart icon ────────────────────────────────────────────
 //
-// {:>3} right-pads the integer into exactly 3 chars for 0–99, 4 for 100.
-// String lengths:
-//   minimal  → "CPU   9%"           = 8 chars
-//   standard → "CPU   9%  MEM  68%" = 18 chars (constant below 100%)
-//   full+gpu → "CPU   9%  MEM  68%  GPU  14%" = 29 chars
+// 4 bars (CPU, RAM, DSK, GPU) that move in real-time. Hot pink.
 
-fn build_tray_title(cpu: f32, mem: f32, gpu: Option<f32>, mode: &str) -> String {
-    let c = cpu as u32;
-    let m = mem as u32;
-    match mode {
-        "minimal" => format!("CPU {:>3}%", c),
-        "full" => match gpu {
-            Some(g) => format!("CPU {:>3}%  MEM {:>3}%  GPU {:>3}%", c, m, g as u32),
-            None    => format!("CPU {:>3}%  MEM {:>3}%", c, m),
-        },
-        _ => format!("CPU {:>3}%  MEM {:>3}%", c, m),
+fn render_live_bars(cpu: u32, ram: u32, dsk: u32, gpu: u32) -> tauri::image::Image<'static> {
+    let canvas: u32 = 44;
+    let mut rgba = vec![0u8; (canvas * canvas * 4) as usize];
+
+    let bar_w: u32 = 6;
+    let gap: u32 = 3;
+    let total_w = 4 * bar_w + 3 * gap;
+    let x_start = (canvas - total_w) / 2;
+    let bottom: u32 = 40;
+    let top_limit: u32 = 4;
+    let max_h = bottom - top_limit;
+
+    // Hot pink
+    let (r, g, b): (u8, u8, u8) = (255, 45, 85);
+
+    let bars = [cpu, ram, dsk, gpu];
+    for (i, &pct) in bars.iter().enumerate() {
+        let x0 = x_start + i as u32 * (bar_w + gap);
+        let fill_h = (pct.min(100) as f32 / 100.0 * max_h as f32).round() as u32;
+        let fill_h = fill_h.max(2);
+        let bar_top = bottom - fill_h;
+
+        for py in bar_top..bottom {
+            for px in x0..(x0 + bar_w) {
+                let idx = ((py * canvas + px) * 4) as usize;
+                rgba[idx] = r;
+                rgba[idx + 1] = g;
+                rgba[idx + 2] = b;
+                rgba[idx + 3] = 240;
+            }
+        }
+    }
+
+    tauri::image::Image::new_owned(rgba, canvas, canvas)
+}
+
+// ─── Native macOS colored tray text ──────────────────────────────────────────
+//
+// Uses Objective-C runtime to create NSStatusItems with colored attributed text.
+// Each metric gets its own status item with a unique color.
+
+#[cfg(target_os = "macos")]
+mod colored_tray {
+    use objc::runtime::Object;
+    use objc::{class, msg_send, sel, sel_impl};
+    use std::ffi::CString;
+
+    pub struct NativeStatusItem {
+        ptr: *mut Object,
+    }
+
+    unsafe impl Send for NativeStatusItem {}
+    unsafe impl Sync for NativeStatusItem {}
+
+    impl NativeStatusItem {
+        pub unsafe fn new() -> Self {
+            let status_bar: *mut Object = msg_send![class!(NSStatusBar), systemStatusBar];
+            let item: *mut Object =
+                msg_send![status_bar, statusItemWithLength: -1.0_f64];
+            let _: () = msg_send![item, retain];
+            NativeStatusItem { ptr: item }
+        }
+
+        pub unsafe fn set_colored_title(&self, text: &str, r: f64, g: f64, b: f64) {
+            let cstr = CString::new(text).unwrap_or_default();
+            let ns_text: *mut Object =
+                msg_send![class!(NSString), stringWithUTF8String: cstr.as_ptr()];
+
+            let color: *mut Object = msg_send![class!(NSColor),
+                colorWithSRGBRed: r green: g blue: b alpha: 1.0_f64];
+            let font: *mut Object =
+                msg_send![class!(NSFont), menuBarFontOfSize: 0.0_f64];
+
+            let ck = CString::new("NSColor").unwrap();
+            let color_key: *mut Object =
+                msg_send![class!(NSString), stringWithUTF8String: ck.as_ptr()];
+            let fk = CString::new("NSFont").unwrap();
+            let font_key: *mut Object =
+                msg_send![class!(NSString), stringWithUTF8String: fk.as_ptr()];
+
+            let keys: [*mut Object; 2] = [color_key, font_key];
+            let vals: [*mut Object; 2] = [color, font];
+            let dict: *mut Object = msg_send![class!(NSDictionary),
+                dictionaryWithObjects: vals.as_ptr()
+                forKeys: keys.as_ptr()
+                count: 2_usize];
+
+            let attr_str: *mut Object = msg_send![class!(NSAttributedString), alloc];
+            let attr_str: *mut Object =
+                msg_send![attr_str, initWithString: ns_text attributes: dict];
+
+            let button: *mut Object = msg_send![self.ptr, button];
+            let _: () = msg_send![button, setAttributedTitle: attr_str];
+            let _: () = msg_send![attr_str, release];
+        }
+
+        pub unsafe fn set_visible(&self, visible: bool) {
+            let length: f64 = if visible { -1.0 } else { 0.0 };
+            let _: () = msg_send![self.ptr, setLength: length];
+        }
+    }
+
+    impl Drop for NativeStatusItem {
+        fn drop(&mut self) {
+            unsafe {
+                let status_bar: *mut Object =
+                    msg_send![class!(NSStatusBar), systemStatusBar];
+                let _: () = msg_send![status_bar, removeStatusItem: self.ptr];
+                let _: () = msg_send![self.ptr, release];
+            }
+        }
+    }
+
+    pub struct MetricTrays {
+        pub cpu: NativeStatusItem,
+        pub ram: NativeStatusItem,
+        pub dsk: NativeStatusItem,
+        pub gpu: NativeStatusItem,
     }
 }
+
 
 // ─── Metrics Thread ───────────────────────────────────────────────────────────
 
@@ -191,10 +314,12 @@ fn start_metrics_thread(
     gpu: Arc<Mutex<Option<f32>>>,
     settings: Arc<Mutex<Settings>>,
     app: AppHandle,
+    native_trays: Arc<colored_tray::MetricTrays>,
 ) {
     std::thread::spawn(move || {
         let mut sys = System::new_all();
         let mut nets = Networks::new_with_refreshed_list();
+        let mut disks = Disks::new_with_refreshed_list();
 
         sys.refresh_cpu_usage();
         std::thread::sleep(Duration::from_millis(1000));
@@ -208,6 +333,7 @@ fn start_metrics_thread(
             sys.refresh_cpu_usage();
             sys.refresh_memory();
             nets.refresh();
+            disks.refresh_list();
             sys.refresh_processes_specifics(
                 ProcessesToUpdate::All,
                 false,
@@ -226,6 +352,23 @@ fn start_metrics_thread(
             let tx_kbps: f64 = nets.iter().map(|(_, n)| n.transmitted() as f64).sum::<f64>() / 1024.0;
             let gpu_usage = *gpu.lock().unwrap();
 
+            // Disk: only the boot volume (mounted at "/")
+            let mut dsk_total: u64 = 0;
+            let mut dsk_available: u64 = 0;
+            for disk in disks.iter() {
+                if disk.mount_point() == std::path::Path::new("/") {
+                    dsk_total = disk.total_space();
+                    dsk_available = disk.available_space();
+                    break;
+                }
+            }
+            let dsk_used = dsk_total.saturating_sub(dsk_available);
+            let dsk_total_gb = dsk_total as f64 / 1_073_741_824.0;
+            let dsk_used_gb  = dsk_used  as f64 / 1_073_741_824.0;
+            let dsk_pct = if dsk_total > 0 {
+                dsk_used as f32 / dsk_total as f32 * 100.0
+            } else { 0.0 };
+
             let cpu_count = sys.cpus().len() as f32;
             let top = sys.processes().values()
                 .filter(|p| p.cpu_usage() > 0.1)
@@ -241,13 +384,55 @@ fn start_metrics_thread(
                 cpu_usage: cpu, mem_used_mb: mem_used, mem_total_mb: mem_total,
                 mem_percent: mem_pct, swap_used_mb: swap_used, swap_total_mb: swap_total,
                 net_rx_kbps: rx_kbps, net_tx_kbps: tx_kbps, gpu_usage,
+                disk_used_gb: dsk_used_gb, disk_total_gb: dsk_total_gb, disk_percent: dsk_pct,
                 top_process_name: top_name, top_process_cpu: top_cpu,
             };
 
-            let title = build_tray_title(cpu, mem_pct, gpu_usage, &mode);
+            // ── Update live bar chart icon ────────────────────────────
             if let Some(tray) = app.tray_by_id("main") {
-                let _ = tray.set_title(Some(&title));
+                let _ = tray.set_icon(Some(render_live_bars(
+                    cpu as u32, mem_pct as u32, dsk_pct as u32,
+                    gpu_usage.unwrap_or(0.0) as u32)));
             }
+
+            // ── Update native colored tray items ─────────────────────
+            let show_std = mode == "standard" || mode == "full";
+            let show_all = mode == "full";
+            let cpu_val = cpu as u32;
+            let mem_val = mem_pct as u32;
+            let dsk_val = dsk_pct as u32;
+            let gpu_val = gpu_usage.map(|g| g as u32);
+
+            let trays = Arc::clone(&native_trays);
+            let _ = app.run_on_main_thread(move || unsafe {
+                // CPU — sky blue — always visible
+                trays.cpu.set_colored_title(
+                    &format!("CPU {}% ", cpu_val), 0.29, 0.56, 0.85);
+
+                // RAM — green
+                trays.ram.set_visible(show_std);
+                if show_std {
+                    trays.ram.set_colored_title(
+                        &format!(" RAM {}% ", mem_val), 0.20, 0.78, 0.35);
+                }
+
+                // DSK — orange
+                trays.dsk.set_visible(show_all);
+                if show_all {
+                    trays.dsk.set_colored_title(
+                        &format!(" DSK {}% ", dsk_val), 1.0, 0.58, 0.0);
+                }
+
+                // GPU — purple
+                let gpu_vis = show_all && gpu_val.is_some();
+                trays.gpu.set_visible(gpu_vis);
+                if let Some(g) = gpu_val {
+                    if gpu_vis {
+                        trays.gpu.set_colored_title(
+                            &format!(" GPU {}% ", g), 0.69, 0.32, 0.87);
+                    }
+                }
+            });
 
             *metrics.lock().unwrap() = snapshot;
             std::thread::sleep(Duration::from_millis(rate_ms));
@@ -368,9 +553,20 @@ pub fn run() {
 
             let settings_for_handler = Arc::clone(&settings_shared);
 
+            // ── Native colored metric trays ──────────────────────────────
+            // Created in reverse order so macOS lays them out left→right
+            let native_trays = Arc::new(unsafe {
+                colored_tray::MetricTrays {
+                    gpu: colored_tray::NativeStatusItem::new(),
+                    dsk: colored_tray::NativeStatusItem::new(),
+                    ram: colored_tray::NativeStatusItem::new(),
+                    cpu: colored_tray::NativeStatusItem::new(),
+                }
+            });
+
+            // ── Main logo tray (leftmost) ────────────────────────────────
             let _tray = TrayIconBuilder::with_id("main")
-                .icon(app.default_window_icon().unwrap().clone())
-                .title("CPU --%  MEM --%")
+                .icon(render_live_bars(0, 0, 0, 0))
                 .tooltip("Rise PulseBar")
                 .menu(&initial_menu)
                 .on_menu_event(move |app, event| {
@@ -492,6 +688,7 @@ pub fn run() {
                 Arc::clone(&gpu_shared),
                 Arc::clone(&settings_shared),
                 app.handle().clone(),
+                native_trays,
             );
 
             app.manage(MetricsState(metrics_shared));
