@@ -448,9 +448,27 @@ fn show_panel(app: &AppHandle, cursor_x_phys: Option<f64>) {
         let scale     = monitor.scale_factor();
         let logical_w = monitor.size().width as f64 / scale;
         let panel_w   = 340.0_f64;
-        let x = match cursor_x_phys {
+
+        // Use click position, or fall back to the tray icon's screen position
+        let phys_x = cursor_x_phys.or_else(|| {
+            app.tray_by_id("main")
+                .and_then(|t| t.rect().ok().flatten())
+                .map(|r| {
+                    let px = match r.position {
+                        tauri::Position::Physical(p) => p.x as f64,
+                        tauri::Position::Logical(p) => p.x * scale,
+                    };
+                    let sw = match r.size {
+                        tauri::Size::Physical(s) => s.width as f64,
+                        tauri::Size::Logical(s) => s.width * scale,
+                    };
+                    px + sw / 2.0
+                })
+        });
+
+        let x = match phys_x {
             Some(px) => (px / scale - panel_w / 2.0).max(4.0).min(logical_w - panel_w - 4.0),
-            None     => logical_w - panel_w - 12.0,
+            None     => 4.0,
         };
         let _ = win.set_position(LogicalPosition::new(x, 28.0));
     }
