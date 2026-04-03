@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Rise PulseBar</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- ── About Modal ────────────────────────────────────────────────────────── -->
+<div id="aboutOverlay" class="about-overlay hidden" role="dialog" aria-modal="true">
+  <div class="about-box">
+    <div class="about-logo">⬡</div>
+    <div class="about-name">RISE <span class="accent">PULSEBAR</span></div>
+    <div class="about-version">v1.0.2</div>
+    <div class="about-author">Rise Studio Labs</div>
+    <div class="about-tag">Ultra-lightweight macOS system monitor</div>
+    <button class="about-close" id="aboutClose">Done</button>
+  </div>
+</div>
+
+<!-- ── Main Panel ─────────────────────────────────────────────────────────── -->
+<div class="panel" id="panel">
+
+  <div class="header">
+    <span class="app-name">RISE <span class="accent">PULSEBAR</span></span>
+    <span class="version">v1.0.2</span>
+    <button class="close-btn" id="closeBtn" title="Close">✕</button>
+  </div>
+
+  <!-- CPU -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-label"><span class="dot dot-cpu"></span>CPU</div>
+      <span class="card-value" id="cpuValue">--%</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill bar-cpu" id="cpuBar"></div></div>
+    <div class="card-sub" id="topProcInfo">Top: —</div>
+    <canvas id="cpuSpark" class="sparkline"></canvas>
+  </div>
+
+  <!-- GPU (hidden until data) -->
+  <div class="card card-hidden" id="gpuCard">
+    <div class="card-header">
+      <div class="card-label"><span class="dot dot-gpu"></span>GPU</div>
+      <span class="card-value" id="gpuValue">--%</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill bar-gpu" id="gpuBar"></div></div>
+    <canvas id="gpuSpark" class="sparkline"></canvas>
+  </div>
+
+  <!-- Memory -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-label"><span class="dot dot-mem"></span>MEMORY</div>
+      <span class="card-value" id="memValue">--%</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill bar-mem" id="memBar"></div></div>
+    <div class="card-sub" id="memSub">— GB / — GB</div>
+  </div>
+
+  <!-- Swap -->
+  <div class="card" id="swapCard">
+    <div class="card-header">
+      <div class="card-label"><span class="dot dot-swap"></span>SWAP</div>
+      <span class="card-value" id="swapValue">—</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill bar-swap" id="swapBar"></div></div>
+    <div class="card-sub" id="swapSub">—</div>
+  </div>
+
+  <!-- Network -->
+  <div class="card" id="netCard">
+    <div class="card-header">
+      <div class="card-label"><span class="dot dot-net"></span>NETWORK</div>
+    </div>
+    <div class="net-row">
+      <div class="net-item">
+        <span class="net-arrow">↓</span>
+        <div>
+          <div class="net-label">DOWN</div>
+          <div class="net-val" id="netRx">— KB/s</div>
+        </div>
+      </div>
+      <div class="net-div"></div>
+      <div class="net-item">
+        <span class="net-arrow net-up">↑</span>
+        <div>
+          <div class="net-label">UP</div>
+          <div class="net-val" id="netTx">— KB/s</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer / Settings -->
+  <div class="footer">
+    <div class="settings-row">
+      <span class="settings-label">MODE</span>
+      <div class="seg" id="modeCtrl">
+        <button class="seg-btn" data-val="minimal">MIN</button>
+        <button class="seg-btn active" data-val="standard">STD</button>
+        <button class="seg-btn" data-val="full">FULL</button>
+      </div>
+    </div>
+    <div class="settings-row">
+      <span class="settings-label">REFRESH</span>
+      <div class="seg" id="rateCtrl">
+        <button class="seg-btn active" data-val="1000">1s</button>
+        <button class="seg-btn" data-val="2000">2s</button>
+        <button class="seg-btn" data-val="5000">5s</button>
+      </div>
+    </div>
+    <label class="toggle-row" title="Start Rise PulseBar at login">
+      <span class="toggle-label">Launch at login</span>
+      <div class="toggle-wrap">
+        <input type="checkbox" id="autostartToggle"/>
+        <span class="toggle-slider"></span>
+      </div>
+    </label>
+  </div>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
