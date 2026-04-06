@@ -15,3 +15,7 @@ RELEASE_ENV_LOCAL.sh
 .env.local
 .env.release
 *.local.sh
+
+# Internal AI session artifacts
+SUPERVISOR_REPORT.json
+.forgestate.json
