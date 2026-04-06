@@ -63,10 +63,6 @@ cargo tauri build
 - macOS 12.0 (Monterey) or later
 - Apple Silicon or Intel Mac
 
-## Release Status
-
-See [RELEASE_MASTER_SUMMARY_RISE_PULSEBAR.md](RELEASE_MASTER_SUMMARY_RISE_PULSEBAR.md) for full release, distribution, and build trust details.
-
 ## License
 
 MIT

@@ -19,3 +19,11 @@ RELEASE_ENV_LOCAL.sh
 # Internal AI session artifacts
 SUPERVISOR_REPORT.json
 .forgestate.json
+
+# Internal ops/planning docs (kept local only)
+EXECUTION_CLOSEOUT_REPORT.md
+RELEASE_CLOSEOUT_V1_0_2.md
+RELEASE_MASTER_SUMMARY_RISE_PULSEBAR.md
+PULSEBAR_V1_1_*.md
+PULSEBAR_V1_1_*.json
+RISE_CLIPBOARD_PLUS_*
