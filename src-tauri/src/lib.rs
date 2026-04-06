@@ -548,6 +548,9 @@ fn build_tray_menu(
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_log::Builder::new().build())
+        .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {
+            // Second instance attempted — do nothing, first instance stays running
+        }))
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             None,
