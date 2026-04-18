@@ -1,3 +1,22 @@
+# Release Notes — v1.0.3
+
+## v1.0.3 — 2026-04-18
+
+### Bug Fixes
+
+- Fixed menu bar label flicker on macOS 26.4 caused by redundant AppKit writes on every refresh tick
+- Eliminated CPU spike (7% → <1% idle) by caching metric values and skipping AppKit calls when unchanged
+- Prevented unnecessary tray icon re-renders when metric percentages have not changed
+- Suppressed implicit NSSceneFenceAction animations on per-metric NSStatusItem label updates
+
+### Technical Notes
+
+- AppKit write caching: set_visible, set_colored_title (x4), and set_icon now only fire on value change
+- NSAnimationContext grouping wraps all label updates atomically to prevent stagger on macOS 26
+- No user-visible feature changes — purely a stability and performance release
+
+---
+
 # Release Notes — v1.0.2
 
 ## What's new in v1.0.2

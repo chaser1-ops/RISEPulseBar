@@ -2,7 +2,7 @@
 
 ## Quick Install (end users)
 
-1. Download `Rise PulseBar_1.0.2_aarch64.dmg`
+1. Download `Rise PulseBar_1.0.3_aarch64.dmg`
 2. Open the DMG and drag **Rise PulseBar** to **Applications**
 3. Launch from **Applications** (first time: right-click > Open to bypass Gatekeeper if unsigned)
 4. The app appears in your menu bar — no dock icon

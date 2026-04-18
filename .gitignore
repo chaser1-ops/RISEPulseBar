@@ -28,3 +28,8 @@ RELEASE_MASTER_SUMMARY_RISE_PULSEBAR.md
 PULSEBAR_V1_1_*.md
 PULSEBAR_V1_1_*.json
 RISE_CLIPBOARD_PLUS_*
+
+# Rejected tray icon design candidates (Apr 2026)
+src-tauri/icons/option-P.png
+src-tauri/icons/option-alien.png
+src-tauri/icons/option-dot.png

@@ -116,4 +116,4 @@ Found a bug? Let us know at **github.com/chaser1-ops/RISEPulseBar/issues**
 
 ---
 
-*Rise PulseBar v1.0.2 — lightweight tools, zero noise.*
+*Rise PulseBar v1.0.3 — lightweight tools, zero noise.*

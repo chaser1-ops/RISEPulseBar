@@ -1,6 +1,6 @@
 [package]
 name = "rise-pulsebar"
-version = "1.0.2"
+version = "1.0.3"
 description = "Rise PulseBar — macOS menu bar system monitor"
 authors = ["Rise"]
 license = "MIT"

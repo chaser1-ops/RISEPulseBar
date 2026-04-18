@@ -32,7 +32,7 @@ RISE PulseBar is a real-time system monitor for macOS with a clean, minimal inte
 
 ## Install
 
-1. Download `Rise PulseBar_1.0.2_aarch64.dmg` from [Releases](https://github.com/chaser1-ops/RISEPulseBar/releases)
+1. Download `Rise PulseBar_1.0.3_aarch64.dmg` from [Releases](https://github.com/chaser1-ops/RISEPulseBar/releases)
 2. Open the DMG, drag **Rise PulseBar** to **Applications**
 3. Launch from Applications
 4. Click the menu bar item to open the dashboard
