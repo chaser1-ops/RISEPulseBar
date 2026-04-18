@@ -33,3 +33,7 @@ RISE_CLIPBOARD_PLUS_*
 src-tauri/icons/option-P.png
 src-tauri/icons/option-alien.png
 src-tauri/icons/option-dot.png
+
+# AI chat session outputs (closeout / tree / recon / audit reports)
+Rise_PulseBar_*.md
+RISEPULSEBAR_*.md
