@@ -15,7 +15,7 @@ Rise PulseBar is a privacy-first macOS menu bar system monitor by RISE Studio La
 - **Stack:** Tauri v2 + Rust 2021 + vanilla HTML/JS/CSS frontend
 - **Platform:** macOS 12.0 Monterey or later, Apple Silicon native (aarch64)
 - **Bundle ID:** `com.rise.pulsebar`
-- **Distribution:** Developer ID signed, free on Gumroad with suggested tip
+- **Distribution:** Developer ID signed; available on Gumroad. Pricing is in a transitional free/paid tiering state — the current single Gumroad listing is $5+ minimum until separate free and paid tiers are built out.
 
 ## Privacy
 
